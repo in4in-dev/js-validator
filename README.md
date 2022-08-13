@@ -30,7 +30,7 @@ try{
     console.log('Example 1 error:', e);
 }
 ```
-```json
+```javascript
 { 
   name: 'Name', 
   id: 22, 
@@ -50,6 +50,12 @@ try {
         .setMessage('Length must be > 2') //Custom error message before assert method
         .assert(v => v.length > 2)  //Custom condiftion
         .custom(v => v + '--' + v)  //Custom modificator
+        .custom(v => {
+            if(v.substr(0,1) === 'B'){
+                throw new Error('First symbol is B');
+            }
+            //return v;
+        })
         .validate(value);
 
     console.log('Example 2 success:', result);
@@ -66,11 +72,11 @@ try {
 //Or u can use Validator.make({...}).errNo();
 let value = 'Test';
 let result = Validator.rule
-	.isString()
-	.length(1, 2)
-	.errNo()
-	.setDefault('No')
-	.validate(value);
+    .isString()
+    .length(1, 2)
+    .errNo()
+    .setDefault('No')
+    .validate(value);
 
 console.log('Example 3 success:', result);
 ```
@@ -135,5 +141,5 @@ assert(fn)
 custom(fn)
 ```
 ```typescript
-errNo(values)
+errNo()
 ```
