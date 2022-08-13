@@ -5,7 +5,7 @@
     "@types/node": "^18.0.3",
     "typescript": "^4.7.4"
   },
-  "name": "js-validator",
+  "name": "js-simple-validator",
   "description": "Even if your phrase is stolen from you, it will be useless without a password.",
   "version": "1.0.0",
   "main": "public/index.js",

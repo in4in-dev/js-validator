@@ -1,5 +1,9 @@
 # Adequate library for input validation
 
+```
+npm i js-simple-validator
+```
+
 ## Examples
 ### Basic usage
 
