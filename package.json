@@ -1,0 +1,31 @@
+{
+  "dependencies": {
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.3",
+    "typescript": "^4.7.4"
+  },
+  "name": "js-validator",
+  "description": "Even if your phrase is stolen from you, it will be useless without a password.",
+  "version": "1.0.0",
+  "main": "public/index.js",
+  "module": "public/index.js",
+  "umd:main": "public/index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/in4in-dev/js-validator.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/in4in-dev/js-validator/issues"
+  },
+  "homepage": "https://github.com/in4in-dev/js-validator#readme",
+  "files": [
+    "public"
+  ],
+  "prepare": "tsc",
+  "types": "public/index.d.ts"
+}
