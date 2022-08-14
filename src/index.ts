@@ -1,6 +1,11 @@
 import Validator from "./Validator/Validator";
 import ValidatorField from "./Validator/ValidatorField";
-import ValidatorError from "./Validator/ValidatorError";
-import ValidatorFieldError from "./Validator/ValidatorFieldError";
+import ValidatorError from "./Validator/Errors/ValidatorError";
+import ValidatorFieldError from "./Validator/Errors/ValidatorFieldError";
+import * as DefaultErrors from "./Validator/Errors/Dictionary/DefaultErrors";
 
-export {Validator, ValidatorField, ValidatorFieldError, ValidatorError}
+let errors = {
+	DefaultErrors
+}
+
+export {Validator, ValidatorField, ValidatorFieldError, ValidatorError, errors}

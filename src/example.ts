@@ -34,9 +34,10 @@ try {
 	let value = 'Test';
 	let field = Validator.rule
 		.isString()
-		.setMessage('Length must be > 2') //Custom error message before assert method
-		.assert(v => v.length > 2)  //Custom condiftion
-		.custom(v => v + '--' + v)  //Custom modificator
+		.try('Length must be > 2', (field) => {
+			field.assert(v => v.length > 2)  //Custom condition
+				.custom(v => v + '--' + v)  //Custom modificator
+		}) //Custom error message for assert method
 		.validate(value);
 
 	console.log('Example 2 success:', field);

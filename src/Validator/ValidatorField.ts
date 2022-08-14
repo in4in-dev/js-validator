@@ -1,4 +1,8 @@
-import ValidatorFieldError from "./ValidatorFieldError";
+import ValidatorFieldError from "./Errors/ValidatorFieldError";
+import IsEmail from "isemail";
+import moment from "moment";
+import * as DefaultErrors from './Errors/Dictionary/DefaultErrors';
+import ValidatorErrorMessagesList from "./Errors/ValidatorErrorMessagesList";
 
 interface ValidatorFieldFn{
 	(item : any) : any
@@ -13,6 +17,7 @@ export default class ValidatorField
 	protected errorsEnabled : boolean = true;
 
 	protected queue : ValidatorFieldFn[] = [];
+	protected errors : ValidatorErrorMessagesList = DefaultErrors;
 
 	protected addQueue(fn : ValidatorFieldFn) : this
 	{
@@ -20,14 +25,16 @@ export default class ValidatorField
 		return this;
 	}
 
-	/**
-	 * Сообщение об ошибке
-	 */
-	public setMessage(message : string) : this
+	public try(message : string, fn : (field : this) => void) : this
 	{
-		return this.addQueue(item => {
-			this.message = message;
-		})
+		return this.setMessage(message), fn(this), this.clearMessage();
+	}
+
+	/**
+	 * Заменяет стандартные сообщения об ошибках
+	 */
+	public setCustomErrors(errors : ValidatorErrorMessagesList = {}){
+		this.errors = Object.assign({}, this.errors, errors);
 	}
 
 	/**
@@ -48,15 +55,43 @@ export default class ValidatorField
 		return this;
 	}
 
+	protected setMessage(message : string) : this
+	{
+		return this.addQueue(item => {
+			this.message = message;
+		})
+	}
+
+	protected clearMessage()
+	{
+		return this.addQueue(item => {
+			this.message = 'Unknown validate error';
+		});
+	}
+
+	public errNo() : this
+	{
+		this.errorsEnabled = false;
+		return this;
+	}
+
+
+	////////////////////////////////////////////////////////////
+	////////////////// Validation methods //////////////////////
+	////////////////////////////////////////////////////////////
+
 	/**
 	 * Значние является строкой
 	 */
 	public isString() : this
 	{
 		return this
-			.setMessage('isString validation error')
-			.custom(item => String(item))
-			.assert(item => typeof item === 'string');
+			.try(this.errors.STRING_VALIDATION_ERROR, () => {
+
+				this.custom(item => String(item))
+					.assert(item => typeof item === 'string')
+
+			});
 	}
 
 	/**
@@ -65,9 +100,12 @@ export default class ValidatorField
 	public isNumeric() : this
 	{
 		return this
-			.setMessage('isNumeric validation error')
-			.custom(item => +item)
-			.assert(item => item >= -Infinity && item <= Infinity);
+			.try(this.errors.NUMERIC_VALIDATION_ERROR, () => {
+
+				this.custom(item => +item)
+					.assert(item => item >= -Infinity && item <= Infinity)
+
+			});
 	}
 
 	/**
@@ -76,9 +114,12 @@ export default class ValidatorField
 	public isInt() : this
 	{
 		return this
-			.setMessage('isInt validation error')
-			.custom(item => parseInt(item))
-			.isNumeric();
+			.try(this.errors.INT_VALIDATION_ERROR, () => {
+
+				return this.custom(item => parseInt(item))
+							.assert(item => !isNaN(item));
+
+			});
 	}
 
 	/**
@@ -95,8 +136,9 @@ export default class ValidatorField
 	public length(min : number, max : number) : this
 	{
 		return this
-			.setMessage('length validation error')
-			.assert(item => item.length >= min && item.length <= max);
+			.try(this.errors.STRING_LENGTH_VALIDATION_ERROR, () => {
+				this.assert(item => item.length >= min && item.length <= max);
+			})
 	}
 
 	/**
@@ -105,8 +147,9 @@ export default class ValidatorField
 	public range(min : number, max : number) : this
 	{
 		return this
-			.setMessage('range validation error')
-			.assert(item => item >= min && item <= max);
+			.try(this.errors.RANGE_VALIDATION_ERROR, () => {
+				this.assert(item => item >= min && item <= max);
+			})
 	}
 
 	/**
@@ -114,7 +157,10 @@ export default class ValidatorField
 	 */
 	public min(min : number) : this
 	{
-		return this.range(min, Infinity);
+		return this
+			.try(this.errors.MIN_VALIDATION_ERROR, () => {
+				this.assert(item => item >= min)
+			})
 	}
 
 	/**
@@ -122,15 +168,143 @@ export default class ValidatorField
 	 */
 	public max(max : number) : this
 	{
-		return this.range(-Infinity, max);
+		return this
+			.try(this.errors.MAX_VALIDATION_ERROR, () => {
+				this.assert(item => item <= max);
+			})
 	}
+
+	/**
+	 * Число больше
+	 */
+	public after(min : number) : this
+	{
+		return this
+			.try(this.errors.AFTER_VALIDATION_ERROR, () => {
+				this.assert(item => item > min);
+			})
+	}
+
+	/**
+	 * Число меньше
+	 */
+	public before(max : number) : this
+	{
+		return this
+			.try(this.errors.BEFORE_VALIDATION_ERROR, () => {
+				this.assert(item => item < max)
+			})
+	}
+
+	/**
+	 * Валидная карта
+	 */
+	public isCreditCard() : this
+	{
+		return this
+			.try(this.errors.CARD_VALIDATION_ERROR, () => {
+				this.assert(item => {
+
+					if(item.length < 16){
+						return false;
+					}
+
+					let s = item.split('').reverse().join('');
+
+					let sum = 0;
+					for (let i = 0, j = s.length, val; i < j; i++) {
+
+						if ((i % 2) == 0) {
+							val = +s[i];
+						} else {
+							val = +s[i] * 2;
+							if (val > 9){
+								val -= 9;
+							}
+						}
+
+						sum += val;
+					}
+
+					return ((sum % 10) == 0);
+
+				});
+			});
+	}
+
+	/**
+	 * Преобразование в дату
+	 */
+	public isDate(format : string = 'YYYY-MM-DD') : this
+	{
+		return this
+			.try(this.errors.DATE_VALIDATION_ERROR, () => {
+				this.custom(item => moment(item, format, true))
+					.assert(item => item.isValid())
+					.custom(item => item.toDate());
+			})
+	}
+
+	/**
+	 * Корректный E-mail
+	 */
+	public isEmail() : this
+	{
+		return this
+			.try(this.errors.EMAIL_VALIDATION_ERROR, () => {
+				this.assert(item => IsEmail.validate(item));
+			})
+	}
+
+	/**
+	 * Валидный json
+	 */
+	public isJSON(parse : boolean = true) : this
+	{
+		return this
+			.try(this.errors.JSON_VALIDATION_ERROR, () => {
+
+				if(parse){
+					return this.custom(item => JSON.parse(item));
+				}
+
+				return 	this.assert(item => JSON.parse(item));
+
+			});
+	}
+
+	/**
+	 * Нижний регистр
+	 */
+	public isLowerCase() : this
+	{
+		return this
+			.try(this.errors.LC_VALIDATION_ERROR, () => {
+				this.assert(item => item === item.toLowerCase());
+			})
+	}
+
+	/**
+	 * Верхний регистр
+	 */
+	public isUpperCase() : this
+	{
+		return this
+			.try(this.errors.UC_VALIDATION_ERROR, () => {
+				this.assert(item => item === item.toUpperCase());
+			})
+	}
+
 
 	/**
 	 * Обрезает пробельные символы строки
 	 */
 	public trim() : this
 	{
-		return this.custom(item => item.trim())
+		return this
+			.try(this.errors.TRIM_ERROR, () => {
+				this.custom(item => item.trim());
+			})
 	}
 
 	/**
@@ -139,8 +313,17 @@ export default class ValidatorField
 	public isArray() : this
 	{
 		return this
-			.setMessage('isArray validation error')
-			.assert(item => item instanceof Array);
+			.try(this.errors.ARRAY_VALIDATION_ERROR, () => {
+				this.assert(item => item instanceof Array);
+			})
+	}
+
+	public isObject() : this
+	{
+		return this
+			.try(this.errors.OBJECT_VALIDATION_ERROR, () => {
+				this.assert(item => (item instanceof Object));
+			})
 	}
 
 	/**
@@ -149,8 +332,9 @@ export default class ValidatorField
 	public in(values : any[]) : this
 	{
 		return this
-			.setMessage('in validation error')
-			.assert(item => values.indexOf(item) >= 0);
+			.try(this.errors.IN_VALIDATION_ERROR, () => {
+				this.assert(item => values.indexOf(item) >= 0);
+			})
 	}
 
 	/**
@@ -159,19 +343,110 @@ export default class ValidatorField
 	public notIn(values : any[]) : this
 	{
 		return this
-			.setMessage('notIn validation error')
-			.assert(item => values.indexOf(item) < 0);
+			.try(this.errors.NOT_IN_VALIDATION_ERROR, () => {
+				this.assert(item => values.indexOf(item) < 0);
+			})
 	}
 
 	/**
-	 * Регулярное выражение
+	 * Тест регуляркой
 	 */
 	public regex(reg : RegExp) : this
 	{
 		return this
-			.setMessage('Regex validation error')
-			.assert(item => reg.test(item));
+			.try(this.errors.REGEX_VALIDATION_ERROR, () => {
+				this.assert(item => reg.test(item));
+			})
 	}
+
+	/**
+	 * Поиск по регулярке
+	 */
+	public regexSearch(reg : RegExp) : this
+	{
+		return this
+			.try(this.errors.REGEX_VALIDATION_ERROR, () => {
+				this.custom(item => reg.exec(item))
+					.assert(item => item !== null);
+			})
+	}
+
+	/**
+	 * Удаление тегов
+	 */
+	public stripTags() : this
+	{
+		return this
+			.try(this.errors.STRIP_TAGS_ERROR, () => {
+				this.custom(item => item.replace(/<.+?(>|$)/g, ''));
+			})
+	}
+
+	/**
+	 * Экранирует специальные символы HTML
+	 */
+	public encodeHtmlChars() : this
+	{
+
+		let replaces = <any>{
+			'&' : '&amp;',
+			'"' : '&quot;',
+			"'" : '&#039;',
+			"<" : '&lt;',
+			">" : '&gt;'
+		}
+
+		return this
+			.try(this.errors.ENCODE_HTML_CHARS_ERROR, () => {
+				this.custom(item => {
+
+					if(typeof document !== 'undefined'){
+						let el = document.createElement('div');
+						el.textContent = item;
+
+						return el.innerHTML;
+					}
+
+					for(let symbol in replaces){
+						item = item.replace(
+							new RegExp(symbol, 'g'),
+							replaces[symbol]
+						);
+					}
+
+					return item;
+
+				});
+			})
+
+	}
+
+	/**
+	 * Декодирует URL-компонент
+	 */
+	public urlDecode() : this
+	{
+		return this
+			.try(this.errors.URL_DECODE_ERROR, () => {
+				this.custom(item => encodeURIComponent(item));
+			})
+	}
+
+	/**
+	 * Строка является ключем в объекте
+	 */
+	public inObjectKeys(obj : any) : this
+	{
+		return this
+			.try(this.errors.IN_OBJECT_KEYS_VALIDATION_ERROR, () => {
+				this.assert(item => (item in obj))
+			})
+	}
+
+	////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////
+
 
 	public assert(fn : (item : any) => boolean) : this
 	{
@@ -189,12 +464,6 @@ export default class ValidatorField
 		return this.addQueue(fn);
 	}
 
-	public errNo() : this
-	{
-		this.errorsEnabled = false;
-		return this;
-	}
-
 
 	public validate(value : any) : any
 	{
@@ -202,7 +471,7 @@ export default class ValidatorField
 		if(value === undefined || value === null){
 
 			if(this.required && this.errorsEnabled){
-				throw new ValidatorFieldError('required validation error');
+				throw new ValidatorFieldError(this.errors.REQUIRED_VALIDATION_ERROR);
 			}
 
 			return this.default;

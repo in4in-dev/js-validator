@@ -1,5 +1,6 @@
 import ValidatorField from "./ValidatorField";
-import ValidatorError from "./ValidatorError";
+import ValidatorError from "./Errors/ValidatorError";
+import ValidatorErrorMessagesList from "./Errors/ValidatorErrorMessagesList";
 
 interface ValidatorRules{
 	[key : string] : ValidatorField
@@ -46,14 +47,14 @@ export default class Validator
 
 		this.each((rule, name) => {
 
+			let value = (name in data) ? data[name] : undefined;
+
 			try {
 
-				result[name] = rule.validate(
-					(name in data) ? data[name] : undefined
-				);
+				result[name] = rule.validate(value);
 
 			}catch (e : any){
-				throw new ValidatorError(name, e.message || 'Validator Unknown Error');
+				throw new ValidatorError(name, value, e.message || 'Validator Unknown Error');
 			}
 
 		});
@@ -64,9 +65,12 @@ export default class Validator
 
 	public errNo() : this
 	{
-		return this.each(
-			rule => rule.errNo()
-		);
+		return this.each(rule => rule.errNo());
+	}
+
+	public setCustomErrors(errors : ValidatorErrorMessagesList) : this
+	{
+		return this.each(rule => rule.setCustomErrors(errors));
 	}
 
 }
