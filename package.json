@@ -9,18 +9,27 @@
   },
   "name": "js-simple-validator",
   "description": "Convenient data validator",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "main": "public/index.js",
   "module": "public/index.js",
   "umd:main": "public/index.js",
   "scripts": {
-    "build" : "tsc"
+    "build": "tsc"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/in4in-dev/js-validator.git"
   },
-  "keywords": ["js", "nodejs", "validator", "validate", "email", "card", "ts", "typescript"],
+  "keywords": [
+    "js",
+    "nodejs",
+    "validator",
+    "validate",
+    "email",
+    "card",
+    "ts",
+    "typescript"
+  ],
   "author": "in4in",
   "license": "ISC",
   "bugs": {
