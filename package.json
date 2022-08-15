@@ -8,18 +8,20 @@
     "typescript": "^4.7.4"
   },
   "name": "js-simple-validator",
-  "description": "Even if your phrase is stolen from you, it will be useless without a password.",
+  "description": "Convenient data validator",
   "version": "1.1.1",
   "main": "public/index.js",
   "module": "public/index.js",
   "umd:main": "public/index.js",
-  "scripts": {},
+  "scripts": {
+    "build" : "tsc"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/in4in-dev/js-validator.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["js", "nodejs", "validator", "validate", "email", "card", "ts", "typescript"],
+  "author": "in4in",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/in4in-dev/js-validator/issues"
