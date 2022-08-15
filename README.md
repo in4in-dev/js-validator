@@ -30,7 +30,8 @@ import {Validator} from 'js-simple-validator';
 let validator = Validator.make({
     id      : Validator.rule.setRequired().isInt(),
     name    : Validator.rule.setRequired().isString().trim().length(1, 255),
-    comment : Validator.rule.setDefault('').isString().trim().length(0, 4096)
+    comment : Validator.rule.isString().trim().length(0, 4096),
+    star    : Validator.rule.setDefault(1).isInt().range(1, 5)  
 });
 
 try{
@@ -49,13 +50,11 @@ try{
 }
 ```
 ```javascript
-{ 
-  name: 'Name', 
+{
   id: 22, 
-  comment: null, 
-  count: 1, 
-  reg: 'Aaaa', 
-  test: 1
+  name: 'Name',
+  comment: null,
+  star : 1
 }
 ```
 <a name="examples_field"></a>
