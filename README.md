@@ -8,6 +8,8 @@ npm i js-simple-validator
 ### Basic usage
 
 ```javascript
+import {Validator, errors} from 'js-simple-validator';
+
 let validator = Validator.make({
     name    : Validator.rule.setRequired().isString().trim().length(1, 255),
     id      : Validator.rule.setRequired().isInt().min(1),
@@ -25,6 +27,11 @@ try{
         reg : 'Aaaa',
         test : 1
     };
+	
+    //Custom errors
+    validator.setCustomErrors({
+        [errors.DefaultErrors.STRING_VALIDATION_ERROR] : 'Value is not string'
+    });
 
     let result = validator.validate(data);
 
@@ -45,31 +52,28 @@ try{
 }
 ```
 
-### Simple validation
+### Simple field validation
 ```javascript
 try {
     let value = 'Test';
-    let result = Validator.rule
+	
+    let field = Validator.rule
         .isString()
-        .setMessage('Length must be > 2') //Custom error message before assert method
-        .assert(v => v.length > 2)  //Custom condiftion
-        .custom(v => v + '--' + v)  //Custom modificator
-        .custom(v => {
-            if(v.substr(0,1) === 'B'){
-                throw new Error('First symbol is B');
-            }
-            //return v;
-        })
-        .validate(value);
+        .try('Something wrong here', field => {
+            field.assert(v => v.length > 2)  //Custom condition
+                 .custom(v => v + '--' + v)  //Custom modificator
+        }); //Custom error message for "try" block
+        
+    let result = field.validate(value);
 
     console.log('Example 2 success:', result);
 }catch (e){
     console.log('Example 2 error:', e);
 }
 ```
-```json
-"Test--Test"
-```
+For any errors in the **"try"** block - you will see *"Something wrong here"* error message. 
+
+If you dont use **"try"** block - you will see *"Unknown error"* message. 
 
 ### No errors mode
 ```javascript
@@ -89,61 +93,135 @@ console.log('Example 3 success:', result);
 "No"
 ```
 
+In case of an error, no exception will be thrown. Instead - the field will get a default value (or null).
+
+## Validator class methods
+```typescript
+.errNo() //Disable error throws
+```
+```typescript
+.setCustomErrors(errors) //Custom errors texts
+```
+```typescript
+.validate(data) //Run validate
+```
+
+## ValidatorField (Validator.rule) class methods
+```typescript
+.custom(fn) //"fn" must return new value 
+```
+```typescript
+.assert(fn) //"fn" must return true/false
+```
+```typescript
+.try(myErrorMessage, fn) //Custom error message
+```
+```typescript
+.errNo() //Disable error throws
+```
+```typescript
+.setDefault(val) //Set default value
+```
+```typescript
+.setRequired(val) //Set field required
+```
+```typescript
+.setRequired(val) //Set field required
+```
+```typescript
+.setCustomErrors(errors) //Custom errors texts
+```
+```typescript
+.validate(data) //Run validate
+```
+
+
 ## Validators
 ```typescript
-setMessage(message)
+.isString()
 ```
 ```typescript
-setDefault(value)
+.isNumeric()
 ```
 ```typescript
-setRequired()
+.isInt()
 ```
 ```typescript
-isString()
+.isBoolean()
 ```
 ```typescript
-isNumeric()
+.length(min, max)
 ```
 ```typescript
-isInt()
+.range(min, max)
 ```
 ```typescript
-isBoolean()
+.min(min)
 ```
 ```typescript
-length(min, max)
+.max(max)
 ```
 ```typescript
-range(min, max)
+.in(values)
 ```
 ```typescript
-min(min)
+.notIn(values)
 ```
 ```typescript
-max(max)
+.regex(regularExpression)
 ```
 ```typescript
-trim()
+.regexSearch(regularExpression)
 ```
 ```typescript
-isArray()
+.after(min)
 ```
 ```typescript
-in(values)
+.before(max)
 ```
 ```typescript
-notIn(values)
+.isCreditCard()
 ```
 ```typescript
-regex(regularExpression)
+.isDate(format = 'YYYY-MM-DD')
 ```
 ```typescript
-assert(fn)
+.isEmail()
 ```
 ```typescript
-custom(fn)
+.isJSON(parse = true)
 ```
 ```typescript
-errNo()
+.isLowerCase()
+```
+```typescript
+.isUpperCase()
+```
+```typescript
+.isArray()
+```
+```typescript
+.isObject()
+```
+```typescript
+.inObjectKeys(obj)
+```
+
+
+## Modes
+
+```typescript
+.trim()
+```
+```typescript
+.toJSON(parse = false)
+```
+```typescript
+.stripTags()
+```
+```typescript
+.encodeHtmlChars()
+```
+```typescript
+.urlDecode()
 ```
