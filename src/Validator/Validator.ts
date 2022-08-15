@@ -1,6 +1,7 @@
 import ValidatorField from "./ValidatorField";
 import ValidatorError from "./Errors/ValidatorError";
-import ValidatorErrorMessagesList from "./Errors/ValidatorErrorMessagesList";
+import ValidatorErrorDictionary from "./Errors/ValidatorErrorDictionary";
+import DefaultErrors from "./Errors/Dictionary/DefaultErrors";
 
 interface ValidatorRules{
 	[key : string] : ValidatorField
@@ -17,14 +18,21 @@ interface ValidatorOutput{
 export default class Validator
 {
 
-	protected rules;
+	public static get rule(){
+		return new ValidatorField;
+	}
+
+	public static make(rules : ValidatorRules) : ValidatorOutput
+	{
+		return new Validator(rules);
+	}
+
+	///////////////
+
+	protected rules : ValidatorRules;
 
 	constructor(rules : ValidatorRules) {
 		this.rules = rules;
-	}
-
-	public static get rule(){
-		return new ValidatorField;
 	}
 
 	protected each(fn : (rule : ValidatorField, name : string) => void) : this
@@ -32,12 +40,8 @@ export default class Validator
 		for(let name in this.rules){
 			fn(this.rules[name], name);
 		}
-		return this;
-	}
 
-	public static make(rules : ValidatorRules) : ValidatorOutput
-	{
-		return new Validator(rules);
+		return this;
 	}
 
 	public validate(data : ValidatorInput) : ValidatorOutput
@@ -68,7 +72,7 @@ export default class Validator
 		return this.each(rule => rule.errNo());
 	}
 
-	public setCustomErrors(errors : ValidatorErrorMessagesList) : this
+	public setCustomErrors(errors : ValidatorErrorDictionary) : this
 	{
 		return this.each(rule => rule.setCustomErrors(errors));
 	}

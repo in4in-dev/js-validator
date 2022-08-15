@@ -1,26 +1,31 @@
-export const STRING_VALIDATION_ERROR = 'String is incorrect';
-export const NUMERIC_VALIDATION_ERROR = 'Value is not numeric';
-export const INT_VALIDATION_ERROR = 'Value is not int';
-export const STRING_LENGTH_VALIDATION_ERROR = 'String length is incorrect';
-export const RANGE_VALIDATION_ERROR = 'Range validation error';
-export const MIN_VALIDATION_ERROR = 'Min validation error';
-export const MAX_VALIDATION_ERROR = 'Max validation error';
-export const AFTER_VALIDATION_ERROR = 'After validation error';
-export const BEFORE_VALIDATION_ERROR = 'Before validation error';
-export const CARD_VALIDATION_ERROR = 'Incorrect card';
-export const DATE_VALIDATION_ERROR = 'Incorrect date';
-export const EMAIL_VALIDATION_ERROR = 'incorrect email';
-export const JSON_VALIDATION_ERROR = 'Incorrect JSON';
-export const LC_VALIDATION_ERROR = 'Lower case validation error';
-export const UC_VALIDATION_ERROR = 'Upper case validation error';
-export const TRIM_ERROR = 'Trim error';
-export const ARRAY_VALIDATION_ERROR = 'Array validation error';
-export const OBJECT_VALIDATION_ERROR = 'Object validation error';
-export const IN_VALIDATION_ERROR = 'IN validation error';
-export const NOT_IN_VALIDATION_ERROR = 'NOT IN validation error';
-export const REGEX_VALIDATION_ERROR = 'Regex validation error';
-export const STRIP_TAGS_ERROR = 'Strip tags error';
-export const ENCODE_HTML_CHARS_ERROR = 'Encode html special chars error';
-export const URL_DECODE_ERROR = 'Url decode error';
-export const IN_OBJECT_KEYS_VALIDATION_ERROR = 'IN OBJECT KEYS validation error';
-export const REQUIRED_VALIDATION_ERROR = 'Field is required';
+import ValidatorErrorDictionary from "../ValidatorErrorDictionary";
+
+export default <ValidatorErrorDictionary>{
+	isString : 'String is incorrect',
+	isNumeric : 'Value is not numeric',
+	isInt : 'Value is not int',
+	length : 'String length is incorrect',
+	range : 'Range validation error',
+	min : 'Min validation error',
+	max : 'Max validation error',
+	after : 'After validation error',
+	before : 'Before validation error',
+	isCreditCard : 'Incorrect card',
+	isDate : 'Incorrect date',
+	isEmail : 'incorrect email',
+	isJSON : 'Incorrect JSON',
+	isLowerCase : 'Lower case validation error',
+	isUpperCase : 'Upper case validation error',
+	trim : 'Trim error',
+	isArray : 'Array validation error',
+	isObject : 'Object validation error',
+	in : 'IN validation error',
+	notIn : 'NOT IN validation error',
+	regex : 'Regex validation error',
+	stripTags : 'Strip tags error',
+	encodeHtmlSpecialChars : 'Encode html special chars error',
+	urlDecode : 'Url decode error',
+	inObjectKeys : 'IN OBJECT KEYS validation error',
+	required : 'Field is required'
+}
+

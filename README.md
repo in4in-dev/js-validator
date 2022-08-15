@@ -139,8 +139,11 @@ To change default error messages - use **setCustomErrors**
 ```typescript
 import {errors} from 'js-simple-validator';
 
+console.log(errors.DefaultErrors);
+
 let myErrorMessages = {
-    [errors.DefaultErrors.STRING_VALIDATION_ERROR] : 'String is bad'
+    'isString' : 'String is bad',
+    'trim' : 'Trim error'
 }
 ```
 ```typescript
@@ -148,7 +151,7 @@ Validator.make({...}).setCustomErrors(myErrorMessages)
 ```
 
 ```typescript
-Validator.rule.setCustomErrors(myErrorMessages).isString();
+Validator.rule.isString().setCustomErrors(myErrorMessages);
 ````
 
 <a name="validator"></a>

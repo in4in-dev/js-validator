@@ -1,8 +1,8 @@
 import ValidatorFieldError from "./Errors/ValidatorFieldError";
 import IsEmail from "isemail";
 import moment from "moment";
-import * as DefaultErrors from './Errors/Dictionary/DefaultErrors';
-import ValidatorErrorMessagesList from "./Errors/ValidatorErrorMessagesList";
+import DefaultErrors from './Errors/Dictionary/DefaultErrors';
+import ValidatorErrorDictionary from "./Errors/ValidatorErrorDictionary";
 
 interface ValidatorFieldFn{
 	(item : any) : any
@@ -13,11 +13,16 @@ export default class ValidatorField
 
 	protected required : boolean = false;
 	protected default : any = null;
-	protected message : string = 'Unknown validate error';
+	protected message : string | null = null;
 	protected errorsEnabled : boolean = true;
 
 	protected queue : ValidatorFieldFn[] = [];
-	protected errors : ValidatorErrorMessagesList = DefaultErrors;
+	protected errors : ValidatorErrorDictionary;
+
+	constructor() {
+		this.errors = Object.assign({}, DefaultErrors);
+	}
+
 
 	protected addQueue(fn : ValidatorFieldFn) : this
 	{
@@ -25,15 +30,10 @@ export default class ValidatorField
 		return this;
 	}
 
-	public try(message : string, fn : (field : this) => void) : this
-	{
-		return this.setMessage(message), fn(this), this.clearMessage();
-	}
-
 	/**
 	 * Заменяет стандартные сообщения об ошибках
 	 */
-	public setCustomErrors(errors : ValidatorErrorMessagesList = {}){
+	public setCustomErrors(errors : ValidatorErrorDictionary = {}){
 		this.errors = Object.assign({}, this.errors, errors);
 	}
 
@@ -55,6 +55,9 @@ export default class ValidatorField
 		return this;
 	}
 
+	/**
+	 * Устанавливает актуальное Сообщение об ошибке
+	 */
 	protected setMessage(message : string) : this
 	{
 		return this.addQueue(item => {
@@ -62,13 +65,19 @@ export default class ValidatorField
 		})
 	}
 
-	protected clearMessage()
+	/**
+	 * Сбрасывает актуальное сообщение об ошибке
+	 */
+	protected clearMessage() : this
 	{
 		return this.addQueue(item => {
-			this.message = 'Unknown validate error';
+			this.message = null;
 		});
 	}
 
+	/**
+	 * NO ERRORS мод
+	 */
 	public errNo() : this
 	{
 		this.errorsEnabled = false;
@@ -86,7 +95,7 @@ export default class ValidatorField
 	public isString() : this
 	{
 		return this
-			.try(this.errors.STRING_VALIDATION_ERROR, () => {
+			.try(this.errors.isString, () => {
 
 				this.custom(item => String(item))
 					.assert(item => typeof item === 'string')
@@ -100,7 +109,7 @@ export default class ValidatorField
 	public isNumeric() : this
 	{
 		return this
-			.try(this.errors.NUMERIC_VALIDATION_ERROR, () => {
+			.try(this.errors.isNumeric, () => {
 
 				this.custom(item => +item)
 					.assert(item => item >= -Infinity && item <= Infinity)
@@ -114,7 +123,7 @@ export default class ValidatorField
 	public isInt() : this
 	{
 		return this
-			.try(this.errors.INT_VALIDATION_ERROR, () => {
+			.try(this.errors.isInt, () => {
 
 				return this.custom(item => parseInt(item))
 							.assert(item => !isNaN(item));
@@ -136,7 +145,7 @@ export default class ValidatorField
 	public length(min : number, max : number) : this
 	{
 		return this
-			.try(this.errors.STRING_LENGTH_VALIDATION_ERROR, () => {
+			.try(this.errors.length, () => {
 				this.assert(item => item.length >= min && item.length <= max);
 			})
 	}
@@ -147,7 +156,7 @@ export default class ValidatorField
 	public range(min : number, max : number) : this
 	{
 		return this
-			.try(this.errors.RANGE_VALIDATION_ERROR, () => {
+			.try(this.errors.range, () => {
 				this.assert(item => item >= min && item <= max);
 			})
 	}
@@ -158,7 +167,7 @@ export default class ValidatorField
 	public min(min : number) : this
 	{
 		return this
-			.try(this.errors.MIN_VALIDATION_ERROR, () => {
+			.try(this.errors.min, () => {
 				this.assert(item => item >= min)
 			})
 	}
@@ -169,7 +178,7 @@ export default class ValidatorField
 	public max(max : number) : this
 	{
 		return this
-			.try(this.errors.MAX_VALIDATION_ERROR, () => {
+			.try(this.errors.max, () => {
 				this.assert(item => item <= max);
 			})
 	}
@@ -180,7 +189,7 @@ export default class ValidatorField
 	public after(min : number) : this
 	{
 		return this
-			.try(this.errors.AFTER_VALIDATION_ERROR, () => {
+			.try(this.errors.after, () => {
 				this.assert(item => item > min);
 			})
 	}
@@ -191,7 +200,7 @@ export default class ValidatorField
 	public before(max : number) : this
 	{
 		return this
-			.try(this.errors.BEFORE_VALIDATION_ERROR, () => {
+			.try(this.errors.before, () => {
 				this.assert(item => item < max)
 			})
 	}
@@ -202,7 +211,7 @@ export default class ValidatorField
 	public isCreditCard() : this
 	{
 		return this
-			.try(this.errors.CARD_VALIDATION_ERROR, () => {
+			.try(this.errors.isCreditCard, () => {
 				this.assert(item => {
 
 					if(item.length < 16){
@@ -238,7 +247,7 @@ export default class ValidatorField
 	public isDate(format : string = 'YYYY-MM-DD') : this
 	{
 		return this
-			.try(this.errors.DATE_VALIDATION_ERROR, () => {
+			.try(this.errors.isDate, () => {
 				this.custom(item => moment(item, format, true))
 					.assert(item => item.isValid())
 					.custom(item => item.toDate());
@@ -251,7 +260,7 @@ export default class ValidatorField
 	public isEmail() : this
 	{
 		return this
-			.try(this.errors.EMAIL_VALIDATION_ERROR, () => {
+			.try(this.errors.isEmail, () => {
 				this.assert(item => IsEmail.validate(item));
 			})
 	}
@@ -262,7 +271,7 @@ export default class ValidatorField
 	public isJSON(parse : boolean = true) : this
 	{
 		return this
-			.try(this.errors.JSON_VALIDATION_ERROR, () => {
+			.try(this.errors.isJSON, () => {
 
 				if(parse){
 					return this.custom(item => JSON.parse(item));
@@ -279,7 +288,7 @@ export default class ValidatorField
 	public isLowerCase() : this
 	{
 		return this
-			.try(this.errors.LC_VALIDATION_ERROR, () => {
+			.try(this.errors.isLowerCase, () => {
 				this.assert(item => item === item.toLowerCase());
 			})
 	}
@@ -290,7 +299,7 @@ export default class ValidatorField
 	public isUpperCase() : this
 	{
 		return this
-			.try(this.errors.UC_VALIDATION_ERROR, () => {
+			.try(this.errors.isUpperCase, () => {
 				this.assert(item => item === item.toUpperCase());
 			})
 	}
@@ -302,7 +311,7 @@ export default class ValidatorField
 	public trim() : this
 	{
 		return this
-			.try(this.errors.TRIM_ERROR, () => {
+			.try(this.errors.trim, () => {
 				this.custom(item => item.trim());
 			})
 	}
@@ -313,7 +322,7 @@ export default class ValidatorField
 	public isArray() : this
 	{
 		return this
-			.try(this.errors.ARRAY_VALIDATION_ERROR, () => {
+			.try(this.errors.isArray, () => {
 				this.assert(item => item instanceof Array);
 			})
 	}
@@ -321,7 +330,7 @@ export default class ValidatorField
 	public isObject() : this
 	{
 		return this
-			.try(this.errors.OBJECT_VALIDATION_ERROR, () => {
+			.try(this.errors.isObject, () => {
 				this.assert(item => (item instanceof Object));
 			})
 	}
@@ -332,7 +341,7 @@ export default class ValidatorField
 	public in(values : any[]) : this
 	{
 		return this
-			.try(this.errors.IN_VALIDATION_ERROR, () => {
+			.try(this.errors.in, () => {
 				this.assert(item => values.indexOf(item) >= 0);
 			})
 	}
@@ -343,7 +352,7 @@ export default class ValidatorField
 	public notIn(values : any[]) : this
 	{
 		return this
-			.try(this.errors.NOT_IN_VALIDATION_ERROR, () => {
+			.try(this.errors.notIn, () => {
 				this.assert(item => values.indexOf(item) < 0);
 			})
 	}
@@ -354,7 +363,7 @@ export default class ValidatorField
 	public regex(reg : RegExp) : this
 	{
 		return this
-			.try(this.errors.REGEX_VALIDATION_ERROR, () => {
+			.try(this.errors.regex, () => {
 				this.assert(item => reg.test(item));
 			})
 	}
@@ -365,7 +374,7 @@ export default class ValidatorField
 	public regexSearch(reg : RegExp) : this
 	{
 		return this
-			.try(this.errors.REGEX_VALIDATION_ERROR, () => {
+			.try(this.errors.regex, () => {
 				this.custom(item => reg.exec(item))
 					.assert(item => item !== null);
 			})
@@ -377,7 +386,7 @@ export default class ValidatorField
 	public stripTags() : this
 	{
 		return this
-			.try(this.errors.STRIP_TAGS_ERROR, () => {
+			.try(this.errors.stripTags, () => {
 				this.custom(item => item.replace(/<.+?(>|$)/g, ''));
 			})
 	}
@@ -397,7 +406,7 @@ export default class ValidatorField
 		}
 
 		return this
-			.try(this.errors.ENCODE_HTML_CHARS_ERROR, () => {
+			.try(this.errors.encodeHtmlChars, () => {
 				this.custom(item => {
 
 					if(typeof document !== 'undefined'){
@@ -427,7 +436,7 @@ export default class ValidatorField
 	public urlDecode() : this
 	{
 		return this
-			.try(this.errors.URL_DECODE_ERROR, () => {
+			.try(this.errors.urlDecode, () => {
 				this.custom(item => encodeURIComponent(item));
 			})
 	}
@@ -438,7 +447,7 @@ export default class ValidatorField
 	public inObjectKeys(obj : any) : this
 	{
 		return this
-			.try(this.errors.IN_OBJECT_KEYS_VALIDATION_ERROR, () => {
+			.try(this.errors.inObjectKeys, () => {
 				this.assert(item => (item in obj))
 			})
 	}
@@ -447,6 +456,10 @@ export default class ValidatorField
 	////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////
 
+	public try(message : string, fn : (field : this) => void) : this
+	{
+		return this.setMessage(message), fn(this), this.clearMessage();
+	}
 
 	public assert(fn : (item : any) => boolean, message : string | null = null) : this
 	{
@@ -459,17 +472,16 @@ export default class ValidatorField
 
 		return this.addQueue(item => {
 			if(!fn(item)){
-				throw new ValidatorFieldError(this.message);
+				throw new ValidatorFieldError(this.message || 'Unknown validate error');
 			}
 		});
 
 	}
 
-	public custom(fn : (item : any) => any)
+	public custom(fn : (item : any) => any) : this
 	{
 		return this.addQueue(fn);
 	}
-
 
 	public validate(value : any) : any
 	{
@@ -477,7 +489,7 @@ export default class ValidatorField
 		if(value === undefined || value === null){
 
 			if(this.required && this.errorsEnabled){
-				throw new ValidatorFieldError(this.errors.REQUIRED_VALIDATION_ERROR);
+				throw new ValidatorFieldError(this.errors.required);
 			}
 
 			return this.default;
@@ -506,7 +518,7 @@ export default class ValidatorField
 					throw e;
 				}
 
-				throw new ValidatorFieldError(this.message);
+				throw new ValidatorFieldError(this.message || 'Unknown validate error');
 			}
 
 			return this.default;
