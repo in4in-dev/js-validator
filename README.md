@@ -1,43 +1,50 @@
-# Adequate library for input validation
-
+# Convenient data validation library!
+Validate data with the comfort of your soul!
 ```
 npm i js-simple-validator
 ```
 
+- [Examples](#examples)
+  - [Basic usage](#examples_basic)
+  - [Simple field validation](#examples_field)
+  - [No errors mode](#examples_noerr)
+- [Custom validation](#custom_validation)
+  - [assert](#assert)
+  - [custom](#custom)
+  - [try](#try)
+- [Custom error messages](#messages)
+- [Validator methods](#validator)
+- [Validator.rule methods](#rule)
+  - [Default validate methods](#rule_defaults)
+
+<a name="examples"></a>
 ## Examples
+<a name="examples_basic"></a>
 ### Basic usage
 
-```javascript
-import {Validator, errors} from 'js-simple-validator';
+```typescript
+import {Validator} from 'js-simple-validator';
+```
 
+```javascript
 let validator = Validator.make({
+    id      : Validator.rule.setRequired().isInt(),
     name    : Validator.rule.setRequired().isString().trim().length(1, 255),
-    id      : Validator.rule.setRequired().isInt().min(1),
-    comment : Validator.rule.isString().trim().length(0, 400),
-    count   : Validator.rule.isInt().min(1).setDefault(1),
-    reg     : Validator.rule.setRequired().isString().trim().regex(/^[A-z]+$/),
-    test    : Validator.rule.isInt().in([1,2,3])
+    comment : Validator.rule.setDefault('').isString().trim().length(0, 4096)
 });
 
 try{
 
     let data = {
-        name : 'Name',
         id : 22,
-        reg : 'Aaaa',
-        test : 1
+        name : 'Name'
     };
 	
-    //Custom errors
-    validator.setCustomErrors({
-        [errors.DefaultErrors.STRING_VALIDATION_ERROR] : 'Value is not string'
-    });
-
     let result = validator.validate(data);
 
     console.log('Example 1 success:', result);
 
-}catch (e){
+}catch (e){ //ValidatorError
     console.log('Example 1 error:', e);
 }
 ```
@@ -51,92 +58,141 @@ try{
   test: 1
 }
 ```
-
+<a name="examples_field"></a>
 ### Simple field validation
 ```javascript
+let field = Validator.rule
+    .isString()
+    .regex(/^[A-z]+$/);
+
 try {
-    let value = 'Test';
 	
-    let field = Validator.rule
-        .isString()
-        .try('Something wrong here', field => {
-            field.assert(v => v.length > 2)  //Custom condition
-                 .custom(v => v + '--' + v)  //Custom modificator
-        }); //Custom error message for "try" block
+    let value = 'Test';
         
     let result = field.validate(value);
 
     console.log('Example 2 success:', result);
-}catch (e){
+}catch (e){ //ValidatorFieldError
     console.log('Example 2 error:', e);
 }
 ```
-For any errors in the **"try"** block - you will see *"Something wrong here"* error message. 
 
-If you dont use **"try"** block - you will see *"Unknown error"* message. 
-
+<a name="examples_noerr"></a>
 ### No errors mode
+In case of an error, no exception will be thrown. Instead - the field will get a default value (or null).
+
+**For all fields in Validator:**
 ```javascript
-//Or u can use Validator.make({...}).errNo();
-let value = 'Test';
-let result = Validator.rule
+Validator
+    .make(...)
+    .errNo();
+```
+**For simple field:**
+```javascript
+Validator.rule
     .isString()
     .length(1, 2)
     .errNo()
-    .setDefault('No')
-    .validate(value);
-
-console.log('Example 3 success:', result);
+    .setDefault('No');
 ```
 
-```json
-"No"
+<a name="custom_validation"></a>
+## Custom validation
+<a name="assert"></a>
+### assert(fn [,errorMessage])
+The function must return true or false. 
+```typescript
+Validator.rule
+    .isString()
+    .assert(item => item.length > 5)
+    .stripTags();
+```
+<a name="custom"></a>
+### custom(fn)
+The function must throw an error or return a new value. Any type.
+You can throw only **ValidatorFieldError** from the **custom** callback.
+```typescript
+Validator.rule.isString().custom(item => {
+
+    if (item.length > 5) {
+        throw new ValidatorFieldError('Bad length');
+    }
+
+    return item.substr(0, 2);
+
+});
+````
+<a name="try"></a>
+### try(errorMessage, fn)
+Everything that happens inside this function will cause a specific error:
+```typescript
+Validator.rule.isString().try('Specific error message', field => {
+	
+    field.custom(item => item.split("|"))
+         .assert(item => item.length > 5);
+    
+});
+````
+
+<a name="messages"></a>
+## Custom error messages
+To change default error messages - use **setCustomErrors**
+```typescript
+import {errors} from 'js-simple-validator';
+
+let myErrorMessages = {
+    [errors.DefaultErrors.STRING_VALIDATION_ERROR] : 'String is bad'
+}
+```
+```typescript
+Validator.make({...}).setCustomErrors(myErrorMessages)
 ```
 
-In case of an error, no exception will be thrown. Instead - the field will get a default value (or null).
+```typescript
+Validator.rule.setCustomErrors(myErrorMessages).isString();
+````
 
-## Validator class methods
+<a name="validator"></a>
+## Validator methods
 ```typescript
-.errNo() //Disable error throws
+Validator.errNo()
 ```
 ```typescript
-.setCustomErrors(errors) //Custom errors texts
+Validator.setCustomErrors(errors)
 ```
 ```typescript
-.validate(data) //Run validate
-```
-
-## ValidatorField (Validator.rule) class methods
-```typescript
-.custom(fn) //"fn" must return new value 
-```
-```typescript
-.assert(fn) //"fn" must return true/false
-```
-```typescript
-.try(myErrorMessage, fn) //Custom error message
-```
-```typescript
-.errNo() //Disable error throws
-```
-```typescript
-.setDefault(val) //Set default value
-```
-```typescript
-.setRequired(val) //Set field required
-```
-```typescript
-.setRequired(val) //Set field required
-```
-```typescript
-.setCustomErrors(errors) //Custom errors texts
-```
-```typescript
-.validate(data) //Run validate
+Validator.validate(data)
 ```
 
+<a name="rule"></a>
+## Validator.rule methods
+```typescript
+.custom(fn)
+```
+```typescript
+.assert(fn [, message])
+```
+```typescript
+.try(message, fn)
+```
+```typescript
+.errNo()
+```
+```typescript
+.setDefault(val)
+```
+```typescript
+.setRequired()
+```
+```typescript
+.setCustomErrors(errors)
+```
+```typescript
+.validate(data)
+```
 
-## Validators
+<a name="rule_defaults"></a>
+### Default validate methods
 ```typescript
 .isString()
 ```
@@ -206,15 +262,11 @@ In case of an error, no exception will be thrown. Instead - the field will get a
 ```typescript
 .inObjectKeys(obj)
 ```
-
-
-## Modes
-
 ```typescript
 .trim()
 ```
 ```typescript
-.toJSON(parse = false)
+.isJSON(parse = false)
 ```
 ```typescript
 .stripTags()

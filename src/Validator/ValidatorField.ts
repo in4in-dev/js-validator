@@ -448,8 +448,14 @@ export default class ValidatorField
 	////////////////////////////////////////////////////////////
 
 
-	public assert(fn : (item : any) => boolean) : this
+	public assert(fn : (item : any) => boolean, message : string | null = null) : this
 	{
+
+		if(message){
+			return this.try(message, () => {
+				this.assert(fn);
+			})
+		}
 
 		return this.addQueue(item => {
 			if(!fn(item)){
