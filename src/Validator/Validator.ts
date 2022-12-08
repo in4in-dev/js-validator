@@ -22,7 +22,7 @@ export default class Validator
 		return new ValidatorField;
 	}
 
-	public static make(rules : ValidatorRules) : ValidatorOutput
+	public static make(rules : ValidatorRules) : Validator
 	{
 		return new Validator(rules);
 	}
