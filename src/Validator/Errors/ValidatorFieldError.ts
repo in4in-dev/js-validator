@@ -1,4 +1,6 @@
-export default class ValidatorFieldError extends Error
+import ValidatorThrowable from "./ValidatorThrowable";
+
+export default class ValidatorFieldError extends ValidatorThrowable
 {
 	constructor(message : string) {
 		super(message);

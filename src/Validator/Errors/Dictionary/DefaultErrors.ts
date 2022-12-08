@@ -1,6 +1,6 @@
-import ValidatorErrorDictionary from "../ValidatorErrorDictionary";
+import ValidatorErrorList from "../../ValidatorErrorList";
 
-export default <ValidatorErrorDictionary>{
+export default <ValidatorErrorList>{
 	isString : 'String is incorrect',
 	isNumeric : 'Value is not numeric',
 	isInt : 'Value is not int',

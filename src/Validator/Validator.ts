@@ -1,7 +1,6 @@
 import ValidatorField from "./ValidatorField";
 import ValidatorError from "./Errors/ValidatorError";
-import ValidatorErrorDictionary from "./Errors/ValidatorErrorDictionary";
-import DefaultErrors from "./Errors/Dictionary/DefaultErrors";
+import ValidatorErrorList from "./ValidatorErrorList";
 
 interface ValidatorRules{
 	[key : string] : ValidatorField
@@ -72,7 +71,7 @@ export default class Validator
 		return this.each(rule => rule.errNo());
 	}
 
-	public setCustomErrors(errors : ValidatorErrorDictionary) : this
+	public setCustomErrors(errors : ValidatorErrorList) : this
 	{
 		return this.each(rule => rule.setCustomErrors(errors));
 	}

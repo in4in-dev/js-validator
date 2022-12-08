@@ -1,4 +1,6 @@
-export default class ValidatorError extends Error
+import ValidatorThrowable from "./ValidatorThrowable";
+
+export default class ValidatorError extends ValidatorThrowable
 {
 	public field : string;
 	public value : any;

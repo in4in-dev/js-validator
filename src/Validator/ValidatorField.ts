@@ -2,7 +2,7 @@ import ValidatorFieldError from "./Errors/ValidatorFieldError";
 import IsEmail from "isemail";
 import moment from "moment";
 import DefaultErrors from './Errors/Dictionary/DefaultErrors';
-import ValidatorErrorDictionary from "./Errors/ValidatorErrorDictionary";
+import ValidatorErrorList from "./ValidatorErrorList";
 
 interface ValidatorFieldFn{
 	(item : any) : any
@@ -17,7 +17,7 @@ export default class ValidatorField
 	protected errorsEnabled : boolean = true;
 
 	protected queue : ValidatorFieldFn[] = [];
-	protected errors : ValidatorErrorDictionary;
+	protected errors : ValidatorErrorList;
 
 	constructor() {
 		this.errors = Object.assign({}, DefaultErrors);
@@ -33,7 +33,7 @@ export default class ValidatorField
 	/**
 	 * Заменяет стандартные сообщения об ошибках
 	 */
-	public setCustomErrors(errors : ValidatorErrorDictionary = {}){
+	public setCustomErrors(errors : ValidatorErrorList = {}){
 		this.errors = Object.assign({}, this.errors, errors);
 	}
 

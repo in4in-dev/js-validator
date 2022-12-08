@@ -8,14 +8,14 @@ npm i js-simple-validator
   - [Basic usage](#examples_basic)
   - [Simple field validation](#examples_field)
   - [No errors mode](#examples_noerr)
+- [Validator methods](#validator)
+- [Validator.rule methods](#rule)
+  - [Default validate methods](#rule_defaults)
 - [Custom validation](#custom_validation)
   - [assert](#assert)
   - [custom](#custom)
   - [try](#try)
 - [Custom error messages](#messages)
-- [Validator methods](#validator)
-- [Validator.rule methods](#rule)
-  - [Default validate methods](#rule_defaults)
 
 <a name="examples"></a>
 ## Examples
@@ -27,52 +27,45 @@ import {Validator} from 'js-simple-validator';
 ```
 
 ```javascript
-let validator = Validator.make({
-    id      : Validator.rule.setRequired().isInt(),
-    name    : Validator.rule.setRequired().isString().trim().length(1, 255),
-    comment : Validator.rule.isString().trim().length(0, 4096),
-    star    : Validator.rule.setDefault(1).isInt().range(1, 5)  
-});
-
 try{
-
-    let data = {
-        id : 22,
-        name : 'Name'
-    };
 	
-    let result = validator.validate(data);
-
-    console.log('Example 1 success:', result);
-
-}catch (e){ //ValidatorError
-    console.log('Example 1 error:', e);
-}
-```
-```javascript
-{
-  id: 22, 
-  name: 'Name',
-  comment: null,
-  star : 1
+    let data = {
+        id : 1,
+        name : 'Tomato',
+        price : 25.22
+    }
+	
+    let {id, name, price, comment} = Validator.make(
+        {
+            id      : Validator.rule.setRequired().isInt(),
+            name    : Validator.rule.setRequired().isString().trim().length(1, 255),
+            price   : Validator.rule.setRequired().isNumeric().after(0).max(10000),
+            comment : Validator.rule.setDefault(null).isString().length(1, 4096)
+        }
+    ).validate(data);
+	
+    console.log(id);      //Number(1)
+    console.log(name);    //String('Tomato')
+    console.log(price);   //Number(25.22)
+    console.log(comment); //Null
+	
+}catch(ValidatorError e){
+    console.log(e);
 }
 ```
 <a name="examples_field"></a>
-### Simple field validation
+### Simple validation
 ```javascript
-let field = Validator.rule
-    .isString()
-    .regex(/^[A-z]+$/);
+try{
 
-try {
+    let validator = Validator.rule
+        .isString()
+        .regex(/^[A-z]+$/);
 	
-    let value = 'Test';
-        
-    let result = field.validate(value);
-
-    console.log('Example 2 success:', result);
-}catch (e){ //ValidatorFieldError
-    console.log('Example 2 error:', e);
+	let result = validator.validate('Value');
+	
+}catch (ValidatorFieldError e){
+    console.log(e);
 }
 ```
 
@@ -82,77 +75,12 @@ In case of an error, no exception will be thrown. Instead - the field will get a
 
 **For all fields in Validator:**
 ```javascript
-Validator
-    .make(...)
-    .errNo();
+Validator.make(...).errNo().validate(...);
 ```
-**For simple field:**
+**For current rule:**
 ```javascript
-Validator.rule
-    .isString()
-    .length(1, 2)
-    .errNo()
-    .setDefault('No');
+Validator.rule.isString().errNo();
 ```
-
-<a name="custom_validation"></a>
-## Custom validation
-<a name="assert"></a>
-### assert(fn [,errorMessage])
-The function must return true or false. 
-```typescript
-Validator.rule
-    .isString()
-    .assert(item => item.length > 5)
-    .stripTags();
-```
-<a name="custom"></a>
-### custom(fn)
-The function must throw an error or return a new value. Any type.
-You can throw only **ValidatorFieldError** from the **custom** callback.
-```typescript
-Validator.rule.isString().custom(item => {
-
-    if (item.length > 5) {
-        throw new ValidatorFieldError('Bad length');
-    }
-
-    return item.substr(0, 2);
-
-});
-````
-<a name="try"></a>
-### try(errorMessage, fn)
-Everything that happens inside this function will cause a specific error:
-```typescript
-Validator.rule.isString().try('Specific error message', field => {
-	
-    field.custom(item => item.split("|"))
-         .assert(item => item.length > 5);
-    
-});
-````
-
-<a name="messages"></a>
-## Custom error messages
-To change default error messages - use **setCustomErrors**
-```typescript
-import {errors} from 'js-simple-validator';
-
-console.log(errors.DefaultErrors);
-
-let myErrorMessages = {
-    'isString' : 'String is bad',
-    'trim' : 'Trim error'
-}
-```
-```typescript
-Validator.make({...}).setCustomErrors(myErrorMessages)
-```
-
-```typescript
-Validator.rule.isString().setCustomErrors(myErrorMessages);
-````
 
 <a name="validator"></a>
 ## Validator methods
@@ -279,3 +207,62 @@ Validator.validate(data)
 ```typescript
 .urlDecode()
 ```
+
+<a name="custom_validation"></a>
+## Custom validation
+<a name="assert"></a>
+### assert(fn [,errorMessage])
+The function must return true or false.
+```typescript
+Validator.rule
+    .isString()
+    .assert(item => item.length > 5)
+    .stripTags();
+```
+<a name="custom"></a>
+### custom(fn)
+The function must throw an error or return a new value. Any type.
+You can throw only **ValidatorFieldError** from the **custom** callback.
+```typescript
+Validator.rule.isString().custom(item => {
+
+    if (item.length > 5) {
+        throw new ValidatorFieldError('Bad length');
+    }
+
+    return item.substr(0, 2);
+
+});
+````
+<a name="try"></a>
+### try(errorMessage, fn)
+Everything that happens inside this function will cause a specific error:
+```typescript
+Validator.rule.isString().try('Specific error message', field => {
+	
+    field.custom(item => item.split("|"))
+         .assert(item => item.length > 5);
+    
+});
+````
+
+<a name="messages"></a>
+## Custom error messages
+To change default error messages - use **setCustomErrors**
+```typescript
+import {errors} from 'js-simple-validator';
+
+console.log(errors.DefaultErrors);
+
+let myErrorMessages = {
+    'isString' : 'String is bad',
+    'trim' : 'Trim error'
+}
+```
+```typescript
+Validator.make({...}).setCustomErrors(myErrorMessages)
+```
+
+```typescript
+Validator.rule.isString().setCustomErrors(myErrorMessages);
+````
