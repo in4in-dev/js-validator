@@ -31,7 +31,7 @@ try{
 
 //Simple validate rule
 try {
-	let value = 'Test';
+	let value = 'Test ';
 	let field = Validator.rule
 		.isString()
 		.try('Length must be > 2', (field) => {
