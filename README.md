@@ -32,7 +32,7 @@ try{
     let data = {
         id : 1,
         name : 'Tomato',
-        price : 25.22
+        price : '25.22'
     }
 	
     let {id, name, price, comment} = Validator.make(
