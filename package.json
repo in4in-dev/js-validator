@@ -9,7 +9,7 @@
   },
   "name": "js-simple-validator",
   "description": "Convenient data validator",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "main": "public/index.js",
   "module": "public/index.js",
   "umd:main": "public/index.js",
